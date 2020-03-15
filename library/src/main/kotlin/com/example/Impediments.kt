@@ -28,7 +28,7 @@ sealed class Impediments(
     fun aborted(name: String, tag: String): Impediments = invoke(tag, TestAbortedException("test[$name] aborted on $tag"))
     fun skipped(name: String, tag: String): Impediments = invoke(tag, TestSkippedException("test[$name] skipped on $tag"))
     fun failed(name: String): Impediments = invoke("test", AssertionFailedError("test[$name] failed"))
-    fun failed(name: String, expected: Any, actual: Any): Impediments = invoke("test", AssertionFailedError("test[$name] failed", expected, actual))
+    fun failed(name: String, expected: Any, actual: Any?): Impediments = invoke("test", AssertionFailedError("test[$name] failed", expected, actual))
 
     operator fun invoke(tag: String, cause: Throwable): Impediments = when (cause) {
       is TestAbortedException -> AbortedException(tag, cause)

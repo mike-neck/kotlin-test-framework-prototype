@@ -46,9 +46,30 @@ class GivenTest {
     assertEquals(1, result.failedTests().toList().size)
   }
 
+  @org.junit.jupiter.api.Test
+  fun beforeFilter() {
+    val test: Test =
+        Given(title = "map(one:1,two:2).get(one)?100",
+            before = { mapOf("one" to 1, "two" to 2) }, 
+            after = {}, condition = { this["one"] ?: 10 })
+            .When(" + get(two)?200") { p -> p + (get("two") ?: 200) }
+            .Then(" = 3") { _, t -> t shouldBe 3 }
+            .When(" + get(three)") { p -> get("three")?.plus(p) }
+            .Then("= 4") { _, t -> t shouldBe 4 }
+
+    val result = test.performAll()
+    println(result)
+    assertFalse(result.success())
+    assertEquals(1, result.failedTests().toList().size)
+  }
+  
   companion object {
-    infix fun Any.shouldBe(expected: Any): AssertionResult =
+    infix fun Any?.shouldBe(expected: Any): AssertionResult =
         if (this == expected) Success
         else AssertFail(this, expected)
+
+    fun Any?.shouldBeNull(): AssertionResult =
+        if (this == null) Success
+        else Impediments.failed("expected nul but notNull($this)").asAssertionResult()
   }
 }

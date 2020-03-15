@@ -44,7 +44,7 @@ object Success: AssertionResult {
 }
 
 data class AssertFail(
-    val actual: Any,
+    val actual: Any?,
     val expected: Any
 ): AssertionResult {
   override fun toCheckResult(name: String, executionTime: Duration): CheckResult =
@@ -64,3 +64,6 @@ fun Impediments.toCheckResult(name: String, executionTime: Duration): CheckResul
       override fun impediments(): Impediments? = this@toCheckResult
     }
 
+fun Impediments.asAssertionResult(): AssertionResult = object : AssertionResult {
+  override fun toCheckResult(name: String, executionTime: Duration): CheckResult = this@asAssertionResult.toCheckResult(name, executionTime)
+}

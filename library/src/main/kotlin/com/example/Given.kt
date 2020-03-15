@@ -27,8 +27,8 @@ private fun <C, P> defaultAfterListener(): AfterTestListener<C, P> = {}
 
 class Given<C : Any, P : Any>(
     title: String? = null,
-    val beforeListener: BeforeTestListener<C>,
-    val afterListener: AfterTestListener<C, P>,
+    val before: BeforeTestListener<C>,
+    val after: AfterTestListener<C, P>,
     val condition: C.() -> P
 ) : Test {
 
@@ -55,8 +55,8 @@ class Given<C : Any, P : Any>(
         this@Given.also {
           it.checks.add(
               Execution(
-                  beforeListener,
-                  afterListener,
+                  before,
+                  after,
                   condition,
                   operation,
                   assertion,
