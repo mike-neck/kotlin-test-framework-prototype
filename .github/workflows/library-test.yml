@@ -3,7 +3,7 @@ name: library test
 on:
   push:
     branches:
-      - *
+      - '*'
     paths:
       - 'library/**'
 
