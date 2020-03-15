@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - '*'
-    paths:
-      - 'library/**'
+#    paths:
+#      - 'library/**'
 
 jobs:
   library-test:
@@ -21,6 +21,12 @@ jobs:
       -
         name: checkout
         uses: actions/checkout@v2
+
+      -
+        name: inspect directory
+        run: |
+          pwd
+          ls -l
 
       -
         name: cache config
