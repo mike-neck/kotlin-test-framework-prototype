@@ -16,10 +16,12 @@ repositories {
 dependencies {
   implementation(platform("org.springframework.boot:spring-boot-starter-parent:2.2.5.RELEASE"))
 
+  implementation(project(":library"))
+
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.opentest4j:opentest4j:1.2.0")
-  testImplementation("org.junit.jupiter:junit-jupiter")
+  implementation("org.junit.platform:junit-platform-engine")
 }
 
 tasks.withType<Test> {

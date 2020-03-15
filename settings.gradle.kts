@@ -10,3 +10,4 @@
 rootProject.name = "kc"
 include("library")
 include("user")
+include("engine")
