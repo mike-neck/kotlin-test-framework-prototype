@@ -27,14 +27,37 @@ interface Check {
   fun perform(): CheckResult
 }
 
-interface AssertionResult
+interface AssertionResult {
+  fun toCheckResult(name: String, executionTime: Duration): CheckResult
+}
 
-object Success: AssertionResult
+object Success: AssertionResult {
+  override fun toCheckResult(name: String, executionTime: Duration): CheckResult =
+      object : CheckResult {
+        override fun toString(): String = "CheckResult[$name=SUCCESS]"
+        override val executionTime: Duration get() = executionTime
+        override fun impediments(): Impediments? = null
+      }
+}
 
 data class AssertFail(
     val actual: Any,
     val expected: Any
-): AssertionResult
+): AssertionResult {
+  override fun toCheckResult(name: String, executionTime: Duration): CheckResult =
+      object : CheckResult {
+        override fun toString(): String = "CheckResult[$name=FAILURE]"
+        override val executionTime: Duration get() = executionTime
+        override fun impediments(): Impediments? = Impediments.failed(name, expected, actual)
+      }
+}
+
+fun Impediments.toCheckResult(name: String, executionTime: Duration): CheckResult =
+    object : CheckResult {
+      override fun toString(): String = "CheckResult[$name=ERROR(${this@toCheckResult::class.simpleName})]"
+      override val executionTime: Duration get() = executionTime
+      override fun impediments(): Impediments? = this@toCheckResult
+    }
 
 interface Test {
   val all: Iterable<Check>

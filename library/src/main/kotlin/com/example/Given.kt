@@ -15,8 +15,6 @@
  */
 package com.example
 
-import java.time.Instant
-
 typealias BeforeTestListener<T> = () -> T
 
 private object DefaultBeforeTestListener : BeforeTestListener<Unit> {
@@ -36,10 +34,19 @@ class Given<C : Any, P : Any>(
   private val checks: MutableList<Check> = mutableListOf()
   override val all: Iterable<Check> get() = checks.toList()
 
-  inner class When<T>(val name: String, val operation: C.(P) -> T) {
+  inner class When<T>(private val name: String = "", private val operation: C.(P) -> T) {
+    @Suppress("FunctionName")
     fun Then(explain: String, assertion: C.(P, T) -> AssertionResult): Given<C, P> =
-        TODO()
-//        this@Given.also { it.checks.add(Execution("given: $title, when: $name, then: $explain")) }
+        this@Given.also {
+          it.checks.add(
+              Execution(
+                  beforeListener,
+                  afterListener,
+                  condition,
+                  operation,
+                  assertion,
+                  "given: $title, when: $name, then: $explain"))
+        }
   }
 
   companion object {
@@ -47,39 +54,3 @@ class Given<C : Any, P : Any>(
         Given(title, DefaultBeforeTestListener, defaultAfterListener(), { condition() })
   }
 }
-
-class Execution<C: Any, P: Any, T: Any>(
-    val beforeListener: BeforeTestListener<C>,
-    val afterListener: AfterTestListener<C, P>,
-    val condition: C.() -> P,
-    val operation: C.(P) -> T,
-    val assertion: C.(P, T) -> AssertionResult,
-    override val description: String
-) : Check {
-  private operator fun <F: Any, T: Any, R: Any> Pair<F, Either<Impediments, T>>.invoke(
-      step: String,
-      function: (T) -> R): Pair<F, Either<Impediments, R>> = 
-      this.first to this.second.andThen(action(step, function))
-
-  override fun perform(): CheckResult = TODO()
-//      (Instant.now() to Either.right<Impediments, Unit>(Unit)) {
-//        beforeListener()
-//      } {  }
-}
-
-
-private interface Action<in T: Any, N: Any> {
-  fun execute(previous: T): Either<Impediments, N>
-}
-
-private fun <T: Any, N: Any> action(step: String, function: (T) -> N): Action<T, N> = object : Action<T, N> {
-  override fun execute(previous: T): Either<Impediments, N> =
-      try {
-        Either.right(function(previous))
-      } catch (th: Throwable) {
-        Either.left(Impediments(step, th))
-      }
-}
-
-private infix fun <T : Any, N : Any> Either<Impediments, T>.andThen(
-    action: Action<T, N>): Either<Impediments, N> = this.flatMap { action.execute(it) }
