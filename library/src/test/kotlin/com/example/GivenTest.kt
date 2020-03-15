@@ -16,6 +16,7 @@
 package com.example
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 
 class GivenTest {
 
@@ -24,10 +25,13 @@ class GivenTest {
     val test = Given { 1 }
         .When { it + 1 }
         .Then { _, result -> result shouldBe 2 }
-    val failures = test.all
-        .map { it.perform() }
-        .mapNotNull { it.impediments() }
-    assertEquals(0,failures.size)
+
+    val testResult = test.performAll()
+
+    assertEquals(emptyList<CheckResult>(), testResult.failedTests())
+    assertEquals(
+        "given: Given, when: When, then: test-1",
+        testResult.successTests().first().name)
   }
 
   @org.junit.jupiter.api.Test
@@ -35,9 +39,11 @@ class GivenTest {
     val test: Test = Given { 1 }
         .When { it + 2 }
         .Then { _, result -> result shouldBe 4 }
-    val result: Iterable<CheckResult> = test.performAll()
-    val failed = result.mapNotNull { it.impediments() }
-    assertEquals(1, failed.size)
+
+    val result = test.performAll()
+
+    assertFalse(result.success())
+    assertEquals(1, result.failedTests().toList().size)
   }
 
   companion object {

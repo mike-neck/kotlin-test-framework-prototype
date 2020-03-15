@@ -18,8 +18,10 @@ package com.example
 import java.time.Duration
 
 interface CheckResult {
+  val name: String
   val executionTime: Duration
   fun impediments(): Impediments?
+  val success: Boolean get() = impediments() == null
 }
 
 interface Check {
@@ -34,6 +36,7 @@ interface AssertionResult {
 object Success: AssertionResult {
   override fun toCheckResult(name: String, executionTime: Duration): CheckResult =
       object : CheckResult {
+        override val name: String = name 
         override fun toString(): String = "CheckResult[$name=SUCCESS]"
         override val executionTime: Duration get() = executionTime
         override fun impediments(): Impediments? = null
@@ -46,6 +49,7 @@ data class AssertFail(
 ): AssertionResult {
   override fun toCheckResult(name: String, executionTime: Duration): CheckResult =
       object : CheckResult {
+        override val name: String = name
         override fun toString(): String = "CheckResult[$name=FAILURE]"
         override val executionTime: Duration get() = executionTime
         override fun impediments(): Impediments? = Impediments.failed(name, expected, actual)
@@ -54,12 +58,9 @@ data class AssertFail(
 
 fun Impediments.toCheckResult(name: String, executionTime: Duration): CheckResult =
     object : CheckResult {
+      override val name: String = name
       override fun toString(): String = "CheckResult[$name=ERROR(${this@toCheckResult::class.simpleName})]"
       override val executionTime: Duration get() = executionTime
       override fun impediments(): Impediments? = this@toCheckResult
     }
 
-interface Test {
-  fun performAll(): Iterable<CheckResult> = all.map { it.perform() }
-  val all: Iterable<Check>
-}

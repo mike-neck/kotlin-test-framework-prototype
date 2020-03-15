@@ -37,9 +37,14 @@ class Given<C : Any, P : Any>(
   private val checks: MutableList<Check> = mutableListOf()
   override val all: Iterable<Check> get() = checks.toList()
 
+
   inner class When<T>(name: String? = null, private val operation: C.(P) -> T) {
 
     val operationName: String = name ?: this::class.simpleName ?: this::class.java.simpleName
+
+    private val count: Array<Int> = arrayOf(1)
+
+    private fun String?.name(): String = this?.also { count[0]++ } ?: "test-${count[0]++}" 
 
     @Suppress("FunctionName")
     fun Then(explain: String? = null, assertion: C.(P, T) -> AssertionResult): Given<C, P> =
@@ -51,12 +56,12 @@ class Given<C : Any, P : Any>(
                   condition,
                   operation,
                   assertion,
-                  "given: $conditionName, when: $operationName, then: $explain"))
+                  "given: $conditionName, when: $operationName, then: ${explain.name()}"))
         }
   }
 
   companion object {
-    operator fun <P : Any> invoke(title: String = "", condition: () -> P): Given<Unit, P> =
+    operator fun <P : Any> invoke(title: String? = null, condition: () -> P): Given<Unit, P> =
         Given(title, DefaultBeforeTestListener, defaultAfterListener(), { condition() })
   }
 }
