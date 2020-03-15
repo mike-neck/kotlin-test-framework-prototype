@@ -39,7 +39,7 @@ jobs:
 
       -
         name: run tests
-        run: ./gradlew :test
+        run: ./gradlew test
 
       -
         name: upload artifacts
