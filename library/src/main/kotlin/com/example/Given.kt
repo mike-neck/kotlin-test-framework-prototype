@@ -26,17 +26,23 @@ typealias AfterTestListener<C, P> = C.(P) -> Unit
 private fun <C, P> defaultAfterListener(): AfterTestListener<C, P> = {}
 
 class Given<C : Any, P : Any>(
-    val title: String = "",
+    title: String? = null,
     val beforeListener: BeforeTestListener<C>,
     val afterListener: AfterTestListener<C, P>,
     val condition: C.() -> P
 ) : Test {
+
+  val conditionName: String = title ?: this::class.simpleName ?: this::class.java.simpleName
+
   private val checks: MutableList<Check> = mutableListOf()
   override val all: Iterable<Check> get() = checks.toList()
 
-  inner class When<T>(private val name: String = "", private val operation: C.(P) -> T) {
+  inner class When<T>(name: String? = null, private val operation: C.(P) -> T) {
+
+    val operationName: String = name ?: this::class.simpleName ?: this::class.java.simpleName
+
     @Suppress("FunctionName")
-    fun Then(explain: String, assertion: C.(P, T) -> AssertionResult): Given<C, P> =
+    fun Then(explain: String? = null, assertion: C.(P, T) -> AssertionResult): Given<C, P> =
         this@Given.also {
           it.checks.add(
               Execution(
@@ -45,7 +51,7 @@ class Given<C : Any, P : Any>(
                   condition,
                   operation,
                   assertion,
-                  "given: $title, when: $name, then: $explain"))
+                  "given: $conditionName, when: $operationName, then: $explain"))
         }
   }
 
