@@ -1,0 +1,43 @@
+name: library test
+
+on:
+  push:
+    branches:
+      - *
+    paths:
+      - 'library/**'
+
+jobs:
+  library-test:
+    name: library test
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        name: setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.6'
+
+      -
+        name: checkout
+        uses: actions/checkout@v2
+
+      -
+        name: cache config
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      -
+        name: run tests
+        run: ./gradlew :library:test
+
+      -
+        name: upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: library-test-results
+          path: ./library/build/reports/tests
