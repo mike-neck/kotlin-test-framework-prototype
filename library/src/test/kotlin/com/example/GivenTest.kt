@@ -16,11 +16,10 @@
 package com.example
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 
 class GivenTest {
 
-  @Test
+  @org.junit.jupiter.api.Test
   fun givenThenWhen() {
     val test = Given { 1 }
         .When { it + 1 }
@@ -29,6 +28,16 @@ class GivenTest {
         .map { it.perform() }
         .mapNotNull { it.impediments() }
     assertEquals(0,failures.size)
+  }
+
+  @org.junit.jupiter.api.Test
+  fun failTest() {
+    val test: Test = Given { 1 }
+        .When { it + 2 }
+        .Then { _, result -> result shouldBe 4 }
+    val result: Iterable<CheckResult> = test.performAll()
+    val failed = result.mapNotNull { it.impediments() }
+    assertEquals(1, failed.size)
   }
 
   companion object {

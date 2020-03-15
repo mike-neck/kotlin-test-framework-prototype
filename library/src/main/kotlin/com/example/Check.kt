@@ -60,5 +60,6 @@ fun Impediments.toCheckResult(name: String, executionTime: Duration): CheckResul
     }
 
 interface Test {
+  fun performAll(): Iterable<CheckResult> = all.map { it.perform() }
   val all: Iterable<Check>
 }
