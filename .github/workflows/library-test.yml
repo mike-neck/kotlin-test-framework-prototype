@@ -1,4 +1,4 @@
-name: library test
+name: all tests
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   library-test:
-    name: library test
+    name: all tests
     runs-on: ubuntu-18.04
     steps:
       -
@@ -33,13 +33,13 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/library/build.gradle') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('library/build.gradle.kts') }}-${{ hashFiles('engine/build.gradle.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       -
         name: run tests
-        run: ./gradlew :library:test
+        run: ./gradlew :test
 
       -
         name: upload artifacts
