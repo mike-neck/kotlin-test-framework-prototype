@@ -30,7 +30,7 @@ class GivenTest {
 
     assertEquals(emptyList<CheckResult>(), testResult.failedTests())
     assertEquals(
-        "given: Given, when: When, then: test-1",
+        "Given/When/test-1",
         testResult.successTests().first().name)
   }
 

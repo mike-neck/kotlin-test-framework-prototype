@@ -32,7 +32,9 @@ class Given<C : Any, P : Any>(
     val condition: C.() -> P
 ) : Test {
 
-  val conditionName: String = title ?: this::class.simpleName ?: this::class.java.simpleName
+  private val conditionName: String =
+      if (title != null) "Given[$title]"
+      else this::class.simpleName ?: this::class.java.simpleName ?: "Given"
 
   private val checks: MutableList<Check> = mutableListOf()
   override val all: Iterable<Check> get() = checks.toList()
@@ -40,7 +42,9 @@ class Given<C : Any, P : Any>(
 
   inner class When<T>(name: String? = null, private val operation: C.(P) -> T) {
 
-    val operationName: String = name ?: this::class.simpleName ?: this::class.java.simpleName
+    private val operationName: String =
+        if (name != null) "When[$name]"
+        else this::class.simpleName ?: this::class.java.simpleName ?: "When"
 
     private val count: Array<Int> = arrayOf(1)
 
@@ -56,7 +60,7 @@ class Given<C : Any, P : Any>(
                   condition,
                   operation,
                   assertion,
-                  "given: $conditionName, when: $operationName, then: ${explain.name()}"))
+                  "$conditionName/$operationName/${explain.name()}"))
         }
   }
 
