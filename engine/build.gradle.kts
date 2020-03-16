@@ -18,6 +18,7 @@ dependencies {
 
   implementation(project(":library"))
 
+  implementation("io.github.classgraph:classgraph:4.8.65")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   implementation("org.opentest4j:opentest4j:1.2.0")
