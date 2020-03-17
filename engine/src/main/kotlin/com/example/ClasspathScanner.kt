@@ -37,8 +37,16 @@ class ClasspathScanner(
     private operator fun <R : Any, T : Any> Either<Throwable, R>.invoke(operationName: String, operation: (R) -> T): Either<Throwable, T> =
         kotlin.runCatching { this.map(operation) }
             .getOrElse { Either.left(IllegalStateException("error on $operationName", it)) }
-  }
 
+    private fun Throwable.toIllegalStateException(): IllegalStateException =
+        when (this) {
+          is IllegalStateException -> this
+          else -> when (val c = this.cause) {
+            null -> IllegalStateException(this)
+            else -> IllegalStateException(this.message, c)
+          }
+        }
+  }
 
   fun scanTests(): Either<IllegalStateException, TestableCollection> =
       runCatching {
@@ -58,18 +66,9 @@ class ClasspathScanner(
                 list.map { Testable(it) }
               }("create TestableCollection") {
                 TestableCollection(uniqueId, it)
-              }.errorMap {
-                when (val t = it) {
-                  is IllegalStateException -> t
-                  else -> when (val c = t.cause) {
-                    null -> IllegalStateException(it)
-                    else -> IllegalStateException(it.message, c)
-                  }
-                }
-              }
+              }.errorMap { it.toIllegalStateException() }
             }
       }.getOrElse {
-        @Suppress("ThrowableNotThrown")
         when (it) {
           is OutOfMemoryError -> throw it
           is IllegalStateException -> throw it
