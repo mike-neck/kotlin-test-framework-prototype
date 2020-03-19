@@ -48,13 +48,14 @@ class ClasspathScanner(
         }
   }
 
-  fun scanTests(): Either<IllegalStateException, TestableCollection> =
+  fun scanTests(): Either<IllegalStateException, EngineExecutable> =
       runCatching {
         ClassGraph()
             .enableClassInfo()
             .blacklistClasses(Test::class.java.canonicalName)
+            .blacklistClasses(Given::class.java.canonicalName)
             .scan()
-            .use<ScanResult, Either<IllegalStateException, TestableCollection>> { scan ->
+            .use<ScanResult, Either<IllegalStateException, EngineExecutable>> { scan ->
               Either.right<Throwable, Iterable<ClassInfo>>(
                   scan.getClassesImplementing("com.example.Test")
               )("load classes") { list ->
@@ -65,7 +66,7 @@ class ClasspathScanner(
               }("create Testable") { list ->
                 list.map { Testable(it) }
               }("create TestableCollection") {
-                TestableCollection(uniqueId, it)
+                EngineExecutable(uniqueId, it)
               }.errorMap { it.toIllegalStateException() }
             }
       }.getOrElse {
@@ -76,5 +77,3 @@ class ClasspathScanner(
         }
       }
 }
-
-data class Testable(val test: Test)

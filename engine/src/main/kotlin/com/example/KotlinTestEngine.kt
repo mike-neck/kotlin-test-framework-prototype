@@ -19,6 +19,7 @@ import org.junit.platform.engine.EngineDiscoveryRequest
 import org.junit.platform.engine.ExecutionRequest
 import org.junit.platform.engine.TestDescriptor
 import org.junit.platform.engine.TestEngine
+import org.junit.platform.engine.TestExecutionResult
 import org.junit.platform.engine.UniqueId
 import org.slf4j.LoggerFactory
 
@@ -41,8 +42,8 @@ class KotlinTestEngine(val scannerFactory: ScannerFactory) : TestEngine {
     private fun <T : Any, E : Throwable> Either<E, T>.log(operationName: String): Either<Throwable, T> =
         this.errorMap { errorLog(operationName, it) }
 
-    private operator fun <T : Any, R : Any, E : Throwable> 
-        Either<Throwable, T>.invoke(operationName: String, operation: (T) -> Either<E, R>): Either<Throwable, R> = 
+    private operator fun <T : Any, R : Any, E : Throwable>
+        Either<Throwable, T>.invoke(operationName: String, operation: (T) -> Either<E, R>): Either<Throwable, R> =
         this.flatMap { operation(it).log(operationName) }
 
     private fun <T : Any> Either<Throwable, T>.throwError(): T = this.rescue { throw it }
@@ -55,17 +56,25 @@ class KotlinTestEngine(val scannerFactory: ScannerFactory) : TestEngine {
         discoveryRequest.orIllegalArgumentException("discoveryRequest is null").map { it to id }
       }.map { scannerFactory(it.first, it.second) }("scan classpath") { scanner ->
         scanner.scanTests()
-      }.map { it.createDescriptor(this.id) }.throwError()
+      }.throwError()
 
   override fun getId(): String = "k-check"
 
-  override fun execute(request: ExecutionRequest?) {
-    TODO("not implemented")
-  }
-}
-
-data class TestableCollection(
-    val uniqueId: UniqueId,
-    val tests: Iterable<Testable>) {
-  fun createDescriptor(name: String): TestDescriptor = TODO()
+  override fun execute(request: ExecutionRequest?) =
+      when (request?.rootTestDescriptor) {
+        null -> throw IllegalArgumentException("request is null")
+        is Executable<*> -> (request.rootTestDescriptor as Executable<*>).executeTests(
+            onTestStart = { 
+              request.engineExecutionListener.executionStarted(it) },
+            onTestSucceeded = { 
+              request.engineExecutionListener.executionFinished(it, TestExecutionResult.successful()) },
+            onTestFailed = { desc, failure -> 
+              request.engineExecutionListener.executionFinished(desc, TestExecutionResult.failed(failure)) },
+            onTestError = { desc, error ->
+              request.engineExecutionListener.executionFinished(desc, TestExecutionResult.aborted(error)) },
+            onTestSkipped = { desc, skipped ->
+              request.engineExecutionListener.executionSkipped(desc, "${skipped.message} on ${skipped.tag}") }
+        )
+        else -> Unit
+      }
 }
