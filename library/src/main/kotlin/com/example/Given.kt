@@ -33,7 +33,7 @@ class Given<C : Any, P : Any>(
 ) : Test {
 
   private val conditionName: String =
-      if (title != null) "Given[$title]"
+      if (title != null) "Given $title"
       else this::class.simpleName ?: this::class.java.simpleName ?: "Given"
 
   private val checks: MutableList<Check> = mutableListOf()
@@ -43,12 +43,15 @@ class Given<C : Any, P : Any>(
   inner class When<T>(name: String? = null, private val operation: C.(P) -> T) {
 
     private val operationName: String =
-        if (name != null) "When[$name]"
+        if (name != null) "When $name"
         else this::class.simpleName ?: this::class.java.simpleName ?: "When"
 
     private val count: Array<Int> = arrayOf(1)
 
-    private fun String?.name(): String = this?.also { count[0]++ } ?: "test-${count[0]++}" 
+    private fun String?.name(): String = 
+        this?.let { "Then $it" }
+            ?.also { count[0]++ } 
+            ?: "test-${count[0]++}" 
 
     @Suppress("FunctionName")
     fun Then(explain: String? = null, assertion: C.(P, T) -> AssertionResult): Given<C, P> =
@@ -60,7 +63,7 @@ class Given<C : Any, P : Any>(
                   condition,
                   operation,
                   assertion,
-                  "$conditionName/$operationName/${explain.name()}"))
+                  "$conditionName, $operationName, ${explain.name()}"))
         }
   }
 
