@@ -46,5 +46,12 @@ sealed class Impediments(
   class SkippedException(
       tag: String, override val original: TestSkippedException) : Impediments(tag = tag, original = original)
   class AssertionFailureException(
-      tag: String, override val original: AssertionFailedError) : Impediments(tag = tag, original = original)
+      tag: String, override val original: AssertionFailedError) : Impediments(tag = tag, original = original) {
+    override fun toString(): String =
+        """
+          |$message [$tag]
+          |expected: ${original.expected.stringRepresentation}
+          |actual  : ${original.actual.stringRepresentation}
+        """.trimMargin()
+  }
 }
